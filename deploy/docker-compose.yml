@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+    bbdb:
+      image: postgres:18.1
+      ports:
+        - 5432:5432
+
+      environment:
+        POSTGRES_USER: babelbridge
+        POSTGRES_PASSWORD: babelbridge
+        POSTGRES_DB: babelbridge

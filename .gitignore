@@ -1,0 +1,4 @@
+internal/config/.env
+internal/config/config.yml
+internal/kafkaManager/
+

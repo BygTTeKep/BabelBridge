@@ -1,0 +1,50 @@
+package main
+
+import (
+	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"babelbridge/internal"
+	"babelbridge/internal/company"
+	"babelbridge/internal/config"
+	"babelbridge/internal/database/repositories"
+	kafkamanager "babelbridge/internal/kafkaManager"
+
+	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
+)
+
+func main() {
+	conf, err := config.LoadConfig("../../internal/config")
+	if err != nil {
+		panic(err)
+	}
+	pg := repositories.NewPG(conf)
+
+	defer pg.Db.Close()
+
+	kafka := &kafkamanager.KafkaConf{
+		Host: "localhost",
+		Port: 9092,
+	}
+	conn := kafka.ConnectKafka()
+
+	router := gin.Default()
+	kmRepo := kafkamanager.NewKafkaManagerRepositories(pg.Db)
+	kafkaManagerServices := kafkamanager.NewKafkaManagerServices(kmRepo, conn)
+
+	companyRepo := company.NewCompanyRepository(pg.Db)
+	companyService := company.NewCompanyService(companyRepo)
+
+	services := internal.NewServices(kafkaManagerServices, companyService)
+	newRoute := internal.NewRouters(router, *services)
+	newRoute.Init()
+	go func() {
+		router.Run(fmt.Sprintf("localhost:%s", conf.AppPort))
+	}()
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	<-sigChan
+}
