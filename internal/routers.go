@@ -21,9 +21,10 @@ func NewRouters(
 
 func (r *Routers) Init() {
 	api := r.rg.Group("/api")
+	comppanyHandler := company.NewCompanyHandler(r.service.CompanyService)
 	kafkaManagerHandlers := kafkamanager.NewKafkaManagerHandler(r.service.KafkaManagerService)
-	companyRoutes := company.NewCompanyRoutes(r.service.CompanyService)
+	companyRoutes := company.NewCompanyRouter(comppanyHandler)
 
 	kafkamanager.KafkaManagerRouter(api, kafkaManagerHandlers)
-	company.CompanyRouter(api, *companyRoutes)
+	companyRoutes.CompanyRouter(api)
 }

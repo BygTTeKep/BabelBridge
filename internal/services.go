@@ -7,10 +7,10 @@ import (
 
 type Services struct {
 	KafkaManagerService kafkamanager.IKafkaManagerServices
-	CompanyService      company.ICompanyServices
+	CompanyService      company.ICompanyService
 }
 
-func NewServices(kms kafkamanager.IKafkaManagerServices, cs company.ICompanyServices) *Services {
+func NewServices(kms kafkamanager.IKafkaManagerServices, cs company.ICompanyService) *Services {
 	return &Services{
 		KafkaManagerService: kms,
 		CompanyService:      cs,

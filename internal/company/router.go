@@ -3,22 +3,19 @@ package company
 import (
 	"github.com/gin-gonic/gin"
 
-	"babelbridge/internal/company/handlers"
+	"babelbridge/internal/shared/middlewares"
 )
 
 type CompanyRoute struct {
-	handler handlers.Handler
+	handler *Handler
 }
 
-func (cr *CompanyRoute) CreateCompany(ctx *gin.Context) {
-	cr.services.Create(ctx)
+func NewCompanyRouter(handler *Handler) *CompanyRoute {
+	return &CompanyRoute{handler}
 }
 
-func NewCompanyRoutes(services ICompanyServices) *CompanyRoute {
-	return &CompanyRoute{services}
-}
-
-func CompanyRouter(rg *gin.RouterGroup, handle CompanyRoute) {
+func (cr *CompanyRoute) CompanyRouter(rg *gin.RouterGroup) {
 	company := rg.Group("/company")
-	company.POST("/new", handle.CreateCompany)
+	company.POST("/new", middlewares.AuthMiddleware, cr.handler.CreateCompanyHandler)
+	company.DELETE(":id/delete", middlewares.AuthMiddleware, cr.handler.DeleteComnyByID)
 }

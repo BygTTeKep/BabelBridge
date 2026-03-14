@@ -16,8 +16,8 @@ type DatabaseConfig struct {
 }
 
 type AppConfig struct {
-	host string `mapstructure:"host"`
-	port string `mapstructure:"port"`
+	Host string `mapstructure:"host"`
+	Port string `mapstructure:"port"`
 }
 
 type Config struct {

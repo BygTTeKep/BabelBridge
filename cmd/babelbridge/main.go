@@ -23,7 +23,7 @@ func main() {
 	}
 	pg := repositories.NewPG(conf)
 
-	defer pg.Db.Close()
+	defer pg.DB.Close()
 
 	kafka := &kafkamanager.KafkaConf{
 		Host: "localhost",
@@ -32,17 +32,17 @@ func main() {
 	conn := kafka.ConnectKafka()
 
 	router := gin.Default()
-	kmRepo := kafkamanager.NewKafkaManagerRepositories(pg.Db)
+	kmRepo := kafkamanager.NewKafkaManagerRepositories(pg.DB)
 	kafkaManagerServices := kafkamanager.NewKafkaManagerServices(kmRepo, conn)
 
-	companyRepo := company.NewCompanyRepository(pg.Db)
+	companyRepo := company.NewCompanyRepository(pg.DB)
 	companyService := company.NewCompanyService(companyRepo)
 
 	services := internal.NewServices(kafkaManagerServices, companyService)
 	newRoute := internal.NewRouters(router, *services)
 	newRoute.Init()
 	go func() {
-		router.Run(fmt.Sprintf("localhost:%s", conf.AppPort))
+		router.Run(fmt.Sprintf("%s:%s", conf.AppCfg.Host, conf.AppCfg.Port))
 	}()
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
