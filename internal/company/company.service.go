@@ -29,5 +29,8 @@ func (c *CompanyService) Create(ctx context.Context, dto *dtos.CreateCompanyDto)
 }
 
 func (c *CompanyService) Delete(ctx context.Context, id, token string) error {
+	if err := c.repo.Delete(ctx, id, token); err != nil {
+		return err
+	}
 	return nil
 }
