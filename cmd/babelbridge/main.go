@@ -14,9 +14,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
+	logger := logrus.New()
+	logger.SetFormatter(&logrus.JSONFormatter{})
+	logger.SetLevel(logrus.InfoLevel)
+
 	conf, err := config.LoadConfig("../../internal/config")
 	if err != nil {
 		panic(err)
@@ -36,7 +41,7 @@ func main() {
 	kafkaManagerServices := kafkamanager.NewKafkaManagerServices(kmRepo, conn)
 
 	companyRepo := company.NewCompanyRepository(pg.DB)
-	companyService := company.NewCompanyService(companyRepo)
+	companyService := company.NewCompanyService(companyRepo, logger)
 
 	services := internal.NewServices(kafkaManagerServices, companyService)
 	newRoute := internal.NewRouters(router, *services)

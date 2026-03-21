@@ -4,14 +4,16 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 
 	"github.com/google/uuid"
 
 	"babelbridge/internal/company/dtos"
+	"babelbridge/internal/shared/errors"
 )
 
 type ICompanyRepository interface {
-	Create(ctx context.Context, dto *dtos.CreateCompanyDto) error
+	Create(ctx context.Context, dto *dtos.CreateCompanyDto) (*dtos.CreateCompanyResponseDto, error)
 	Delete(ctx context.Context, id, token string) error
 }
 
@@ -26,24 +28,31 @@ func NewCompanyRepository(db *sql.DB) *CompanyRepository {
 }
 
 // Create method  
-func (c *CompanyRepository) Create(ctx context.Context, dto *dtos.CreateCompanyDto) error {
+func (c *CompanyRepository) Create(ctx context.Context, dto *dtos.CreateCompanyDto) (*dtos.CreateCompanyResponseDto, error) {
+	retryCount := 3
 	query := `
 		INSERT INTO company(name, token)
 		VALUES ($1, $2)
 		RETURNING id
 	`
-	for range 3 {
+	for range retryCount {
+		// TODO: шифровать токен
 		token, err := uuid.NewV7()
 		if err != nil {
-			return err
+			return nil, err
 		}
 		var id int
 		err = c.db.QueryRowContext(ctx, query, dto.Name, token).Scan(&id)
 		if err == nil {
-			return nil
+			return &dtos.CreateCompanyResponseDto{
+					ID:    id,
+					Name:  dto.Name,
+					Token: token,
+				},
+				nil
 		}
 	}
-	return fmt.Errorf("failed to generate unique token")
+	return nil, fmt.Errorf("failed to generate unique token")
 }
 
 // Delete method  
@@ -61,7 +70,7 @@ func (c *CompanyRepository) Delete(ctx context.Context, id, token string) error 
 	}
 
 	if rows == 0 {
-		return fmt.Errorf("company not found")
+		return errors.NewNotFound("company not found")
 	}
 
 	return nil

@@ -4,7 +4,7 @@ services:
     bbdb:
       image: postgres:18.1
       ports:
-        - 5432:5432
+        - 5437:5432
 
       environment:
         POSTGRES_USER: babelbridge
