@@ -4,9 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
 
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 
 	"babelbridge/internal/company/dtos"
 	"babelbridge/internal/shared/errors"
@@ -18,12 +18,14 @@ type ICompanyRepository interface {
 }
 
 type CompanyRepository struct {
-	db *sql.DB
+	db     *sql.DB
+	logger *logrus.Entry
 }
 
-func NewCompanyRepository(db *sql.DB) *CompanyRepository {
+func NewCompanyRepository(db *sql.DB, logger *logrus.Logger) *CompanyRepository {
 	return &CompanyRepository{
-		db: db,
+		db:     db,
+		logger: logger.WithField("repository", "CompanyRepository"),
 	}
 }
 
@@ -39,6 +41,7 @@ func (c *CompanyRepository) Create(ctx context.Context, dto *dtos.CreateCompanyD
 		// TODO: шифровать токен
 		token, err := uuid.NewV7()
 		if err != nil {
+			c.logger.Errorf("error generate uuid: %v", err)
 			return nil, err
 		}
 		var id int
@@ -51,8 +54,9 @@ func (c *CompanyRepository) Create(ctx context.Context, dto *dtos.CreateCompanyD
 				},
 				nil
 		}
+
 	}
-	return nil, fmt.Errorf("failed to generate unique token")
+	return nil, fmt.Errorf("failed to create company")
 }
 
 // Delete method  
@@ -61,11 +65,14 @@ func (c *CompanyRepository) Delete(ctx context.Context, id, token string) error 
 
 	res, err := c.db.ExecContext(ctx, query, id, token)
 	if err != nil {
+		c.logger.Errorf("error delete company: %v", err)
+		// TODO: вынести ошибки в константы
 		return err
 	}
 
 	rows, err := res.RowsAffected()
 	if err != nil {
+		c.logger.Errorf("failed to get rows affected for company id=%s: %v", id, err)
 		return err
 	}
 

@@ -37,10 +37,14 @@ func main() {
 	conn := kafka.ConnectKafka()
 
 	router := gin.Default()
-	kmRepo := kafkamanager.NewKafkaManagerRepositories(pg.DB)
-	kafkaManagerServices := kafkamanager.NewKafkaManagerServices(kmRepo, conn)
+	kmRepo := kafkamanager.NewKafkaManagerRepositories(pg.DB, logger)
+	kafkaManagerServices := kafkamanager.NewKafkaManagerServices(
+		kmRepo,
+		conn,
+		logger,
+	)
 
-	companyRepo := company.NewCompanyRepository(pg.DB)
+	companyRepo := company.NewCompanyRepository(pg.DB, logger)
 	companyService := company.NewCompanyService(companyRepo, logger)
 
 	services := internal.NewServices(kafkaManagerServices, companyService)
