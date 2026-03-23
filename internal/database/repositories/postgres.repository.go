@@ -10,8 +10,8 @@ import (
 type Tables string
 
 const (
-	CompanyTable Tables = "companies"
-	TopicTable   Tables = "topics"
+	CompanyTable Tables = "company"
+	TopicTable   Tables = "topic"
 )
 
 type PostgresRepository struct {
