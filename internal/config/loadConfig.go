@@ -20,9 +20,15 @@ type AppConfig struct {
 	Port string `mapstructure:"port"`
 }
 
+type DeepLConfig struct {
+	AuthKey string `mapstructure:"authKey"`
+	BaseURL string `mapstructure:"baseUrl"`
+}
+
 type Config struct {
-	AppCfg AppConfig      `mapstructure:"app"`
-	DBCfg  DatabaseConfig `mapstructure:"database"`
+	AppCfg   AppConfig      `mapstructure:"app"`
+	DBCfg    DatabaseConfig `mapstructure:"database"`
+	DeepLCfg DeepLConfig    `mapstructure:"deepL"`
 }
 
 func LoadConfig(path string) (conf *Config, err error) {
